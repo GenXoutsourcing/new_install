@@ -1,5 +1,5 @@
 # VICIDIAL INSTALLATION SCRIPTS (Default is Eastern Time Zone US)
-# Centos, Rocky and AlmaLinux Vicidial Install pre_requisites 
+# AlmaLinux Vicidial Install pre_requisites 
 
 ```
 
@@ -30,7 +30,7 @@ reboot
 
 ```
 cd /usr/src/
-git clone https://github.com/carpenox/vicidial-install-scripts.git
+git clone https://github.com/GenXoutsourcing/updated_vicidial_install
 cd vicidial-install-scripts
 ```
 
@@ -48,20 +48,7 @@ chmod +x alma-rocky9-cpm-beta.sh
 ./alma-rocky9-cpm-beta.sh
 ```
 
-# Alma 8 Add on telephony server for a cluster
-
-```
-chmod +x Vici-alma-dialer-install.sh
-./Vici-alma-dialer-install.sh
-```
-
-# Execute Centos7 Vicidial Install
-```
-chmod +x vicidial-install-c7.sh
-./vicidial-install-c7.sh
-```
-
-# Execute Alma/Rocky 8 Linux Vicidial Install
+# Execute Alma8 Linux Vicidial Install
 ```
 chmod +x vicidial-install-almalinux.sh
 ./vicidial-install-almalinux.sh
