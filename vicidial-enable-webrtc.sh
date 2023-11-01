@@ -1,25 +1,18 @@
 #!/bin/bash
 
 echo "Install certbot for LetsEncrypt"
-if [ -f /etc/redhat-release ]; then
-	yum -y install certbot python3-certbot-apache mod_ssl
-fi
-if [ -f /etc/lsb-release ]; then
-	sudo add-apt-repository ppa:certbot/certbot
-	sudo apt install python-certbot-apache
-fi
 
 echo "Enter the DOMAIN NAME HERE. ***********IF YOU DONT HAVE ONE PLEASE DONT CONTINUE: "
 read DOMAINNAME
 
-wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://github.com/GenXoutsourcing/updated_vicidial_install/blob/main/DOMAINNAME.conf
+wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://github.com/GenXoutsourcing/new_install/blob/main/DOMAINNAME.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/httpd/conf.d/$DOMAINNAME.conf
 
 echo "Please Enter EMAIL and Agree the Terms and Conditions "
 certbot --apache -d $DOMAINNAME --agree-tos -m steve.turner@genxoutsourcing.com -n
 
 echo "Change http.conf in Asterisk"
-wget -O /etc/asterisk/http.conf https://github.com/GenXoutsourcing/updated_vicidial_install/blob/main/DOMAINNAME.conf
+wget -O /etc/asterisk/http.conf https://github.com/GenXoutsourcing/new_install/blob/main/DOMAINNAME.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/asterisk/http.conf
 
 echo "Reloading Asterisk"
