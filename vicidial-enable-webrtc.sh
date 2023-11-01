@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo "Download CyburPhone"
-cd /var/www/html
-git clone https://github.com/carpenox/CyburPhone.git
-chmod -R 744 CyburPhone
-chown -R apache:apache CyburPhone
-
 echo "Install certbot for LetsEncrypt"
 if [ -f /etc/redhat-release ]; then
 	yum -y install certbot python3-certbot-apache mod_ssl
@@ -18,19 +12,15 @@ fi
 echo "Enter the DOMAIN NAME HERE. ***********IF YOU DONT HAVE ONE PLEASE DONT CONTINUE: "
 read DOMAINNAME
 
-wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://raw.githubusercontent.com/jaganthoutam/vicidial-install-scripts/main/DOMAINNAME.conf
+wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://raw.githubusercontent.com/GenXoutsourcing/updated_vicidial_install/main/DOMAINNAME.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/httpd/conf.d/$DOMAINNAME.conf
 
 echo "Please Enter EMAIL and Agree the Terms and Conditions "
 certbot --apache -d $DOMAINNAME
 
 echo "Change http.conf in Asterisk"
-wget -O /etc/asterisk/http.conf https://raw.githubusercontent.com/jaganthoutam/vicidial-install-scripts/main/asterisk-http.conf
+wget -O /etc/asterisk/http.conf https://raw.githubusercontent.com/GenXoutsourcing/updated_vicidial_install/main/asterisk-http.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/asterisk/http.conf
-
-echo "Change sip.conf in Asterisk"
-wget -O /etc/asterisk/sip.conf https://raw.githubusercontent.com/jaganthoutam/vicidial-install-scripts/main/asterisk-sip.conf
-sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/asterisk/sip.conf
 
 echo "Reloading Asterisk"
 rasterisk -x reload
@@ -41,7 +31,7 @@ mysql -e "use asterisk; update servers set web_socket_url='wss://$DOMAINNAME:808
 
 echo "Add DOMAINAME system_settings webphone_url"
 echo "%%%%%%%%%%%%%%%This Wont work if you SET root Password%%%%%%%%%%%%%%%"
-mysql -e "use asterisk; update system_settings set webphone_url='https://$DOMAINNAME/CyburPhone/cyburphone.php';"
+mysql -e "use asterisk; update system_settings set webphone_url='https://phone.viciphone.com/viciphone.php';"
 
 echo "update the SIP_generic"
 mysql -e "use asterisk; update vicidial_conf_templates set template_contents='type=friend 
@@ -68,7 +58,7 @@ dtlscertfile=/etc/letsencrypt/live/$DOMAINNAME/cert.pem
 dtlsprivatekey=/etc/letsencrypt/live/$DOMAINNAME/privkey.pem
 dtlssetup=actpass' where template_id='SIP_generic';"
 
-echo "update the Phone tables to set is_webphone to Y deffault"
+echo "update the Phone tables to set is_webphone to Y default"
 mysql -e "use asterisk; ALTER TABLE phones MODIFY COLUMN is_webphone ENUM('Y','N','Y_API_LAUNCH') default 'Y';"
 mysql -e "use asterisk; update phones set template_id='SIP_generic';"
 
