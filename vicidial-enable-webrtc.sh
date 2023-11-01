@@ -12,14 +12,14 @@ fi
 echo "Enter the DOMAIN NAME HERE. ***********IF YOU DONT HAVE ONE PLEASE DONT CONTINUE: "
 read DOMAINNAME
 
-wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://raw.githubusercontent.com/GenXoutsourcing/updated_vicidial_install/main/DOMAINNAME.conf
+wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://github.com/GenXoutsourcing/updated_vicidial_install/blob/main/DOMAINNAME.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/httpd/conf.d/$DOMAINNAME.conf
 
 echo "Please Enter EMAIL and Agree the Terms and Conditions "
-certbot --apache -d $DOMAINNAME
+certbot --apache -d $DOMAINNAME --agree-tos -m steve.turner@genxoutsourcing.com -n
 
 echo "Change http.conf in Asterisk"
-wget -O /etc/asterisk/http.conf https://raw.githubusercontent.com/GenXoutsourcing/updated_vicidial_install/main/asterisk-http.conf
+wget -O /etc/asterisk/http.conf https://github.com/GenXoutsourcing/updated_vicidial_install/blob/main/DOMAINNAME.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/asterisk/http.conf
 
 echo "Reloading Asterisk"
@@ -33,34 +33,27 @@ echo "Add DOMAINAME system_settings webphone_url"
 echo "%%%%%%%%%%%%%%%This Wont work if you SET root Password%%%%%%%%%%%%%%%"
 mysql -e "use asterisk; update system_settings set webphone_url='https://phone.viciphone.com/viciphone.php';"
 
-echo "update the SIP_generic"
+
+echo "Create WEBRTC Template"
+mysql -e "use asterisk; INSERT INTO vicidial_conf_templates (template_id,template_name,template_contents,user_group) values('WEBRTC' ,'WEBRTC Default Phones'.'','---ALL---';"
 mysql -e "use asterisk; update vicidial_conf_templates set template_contents='type=friend 
-host=dynamic 
-context=default 
-host=dynamic 
-trustrpid=yes 
-sendrpid=no 
-qualify=yes 
-qualifyfreq=600 
-transport=ws,wss,udp
+host=dynamic
 encryption=yes
 avpf=yes
 icesupport=yes
-rtcp_mux=yes
 directmedia=no
-disallow=all
-allow=ulaw,opus,vp8,h264
-nat=yes
-directmedia=no 
+transport=wss
+force_avp=yes
 dtlsenable=yes
 dtlsverify=no
 dtlscertfile=/etc/letsencrypt/live/$DOMAINNAME/cert.pem
 dtlsprivatekey=/etc/letsencrypt/live/$DOMAINNAME/privkey.pem
-dtlssetup=actpass' where template_id='SIP_generic';"
+dtlssetup=actpass
+rtcp_mux=yes' where template_id='WEBRTC';"
 
 echo "update the Phone tables to set is_webphone to Y default"
 mysql -e "use asterisk; ALTER TABLE phones MODIFY COLUMN is_webphone ENUM('Y','N','Y_API_LAUNCH') default 'Y';"
-mysql -e "use asterisk; update phones set template_id='SIP_generic';"
+mysql -e "use asterisk; update phones set template_id='WEBRTC';"
 
 #Update the 6666 user permissions
 #echo "VICIDIAL 6666 PASSWORD"
