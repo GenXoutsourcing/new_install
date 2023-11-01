@@ -30,22 +30,8 @@ reboot
 
 ```
 cd /usr/src/
-git clone https://github.com/GenXoutsourcing/updated_vicidial_install
+git clone https://github.com/GenXoutsourcing/new_install
 cd vicidial-install-scripts
-```
-
-# Alma/Rocky 9 Installer with Dynamic portal and Asterisk 16
-
-```
-chmod +x alma9.sh
-./alma9.sh
-```
-
-# Alma/Rocky 9 Installer with Dynamic portal and CyburPhone with Asterisk 18
-
-```
-chmod +x alma-rocky9-cpm-beta.sh
-./alma-rocky9-cpm-beta.sh
 ```
 
 # Execute Alma8 Linux Vicidial Install
