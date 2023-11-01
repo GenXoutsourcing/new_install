@@ -661,8 +661,7 @@ yum-config-manager --enable rhui-REGION-rhel-server-extras rhui-REGION-rhel-serv
 yum install -y certbot python2-certbot-apache
 systemctl enable certbot-renew.timer
 systemctl start certbot-renew.timer
-cd /usr/src/vicidial-install-scripts
-chmod +x vicidial-enable-webrtc.sh
+
 systemctl enable firewalld
 systemctl start firewalld
 
@@ -702,6 +701,8 @@ firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209
 firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='192.168.0.0/24' accept"
 firewall-cmd --reload
 
+cd /usr/src/new_install
+chmod +x vicidial-enable-webrtc.sh
 ./vicidial-enable-webrtc.sh
 
 read -p 'Press Enter to Reboot: '
