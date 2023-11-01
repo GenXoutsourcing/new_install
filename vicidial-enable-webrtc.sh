@@ -1,18 +1,16 @@
 #!/bin/bash
 
-echo "Install certbot for LetsEncrypt"
-
 echo "Enter the DOMAIN NAME HERE. ***********IF YOU DONT HAVE ONE PLEASE DONT CONTINUE: "
 read DOMAINNAME
 
-wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://github.com/GenXoutsourcing/new_install/blob/main/DOMAINNAME.conf
+wget -O /etc/httpd/conf.d/$DOMAINNAME.conf https://raw.githubusercontent.com/jaganthoutam/vicidial-install-scripts/main/DOMAINNAME.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/httpd/conf.d/$DOMAINNAME.conf
 
 echo "Please Enter EMAIL and Agree the Terms and Conditions "
 certbot --apache -d $DOMAINNAME --agree-tos -m steve.turner@genxoutsourcing.com -n
 
 echo "Change http.conf in Asterisk"
-wget -O /etc/asterisk/http.conf https://github.com/GenXoutsourcing/new_install/blob/main/DOMAINNAME.conf
+wget -O /etc/asterisk/http.conf https://raw.githubusercontent.com/jaganthoutam/vicidial-install-scripts/main/asterisk-http.conf
 sed -i s/DOMAINNAME/"$DOMAINNAME"/g /etc/asterisk/http.conf
 
 echo "Reloading Asterisk"
@@ -28,8 +26,9 @@ mysql -e "use asterisk; update system_settings set webphone_url='https://phone.v
 
 
 echo "Create WEBRTC Template"
-mysql -e "use asterisk; INSERT INTO vicidial_conf_templates (template_id,template_name,template_contents,user_group) values('WEBRTC' ,'WEBRTC Default Phones'.'','---ALL---';"
-mysql -e "use asterisk; update vicidial_conf_templates set template_contents='type=friend 
+mysql -e "use asterisk; INSERT INTO vicidial_conf_templates (template_id,template_name,template_contents,user_group) values('WEBRTC' ,'WEBRTC Default Phones','','---ALL---');"
+mysql -e "use asterisk; update vicidial_conf_templates set template_contents='
+type=friend 
 host=dynamic
 encryption=yes
 avpf=yes
