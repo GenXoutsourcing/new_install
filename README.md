@@ -18,7 +18,6 @@ yum update -y
 yum install git -y
 yum install -y kernel*
 
-#Disable SELINUX
 sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config    
 
 reboot
