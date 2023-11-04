@@ -287,7 +287,7 @@ echo 'Continuing...'
 echo "Installing astguiclient"
 mkdir /usr/src/astguiclient
 cd /usr/src/astguiclient
-svn checkout svn://svn.eflo.net/agc_2-X/trunk
+svn co -r 3766 svn://svn.eflo.net:43690/agc_2-X/trunk
 cd /usr/src/astguiclient/trunk
 
 #Add mysql users and Databases
@@ -391,6 +391,10 @@ VARfastagi_log_checkforwait => 60
 
 # Expected DB Schema version for this install
 ExpectedDBSchema => 1645
+
+# 3rd-party add-ons for this install
+KhompEnabled => 1
+
 ASTGUI
 
 echo "Replace IP address in Default"
@@ -399,7 +403,7 @@ read serveripadd
 sed -i s/SERVERIP/"$serveripadd"/g /etc/astguiclient.conf
 
 echo "Install VICIDIAL"
-perl install.pl --no-prompt --copy_sample_conf_files=Y
+perl install.pl --no-prompt --copy_sample_conf_files=Y --khomp-enable=1
 
 #Secure Manager 
 sed -i s/0.0.0.0/127.0.0.1/g /etc/asterisk/manager.conf
@@ -410,7 +414,7 @@ echo "Replace OLD IP. You need to Enter your Current IP here"
 /usr/share/astguiclient/ADMIN_update_server_ip.pl --old-server_ip=10.10.10.15
 
 
-perl install.pl --no-prompt
+perl install.pl --no-prompt --copy_sample_conf_files=Y --khomp-enable=1
 
 
 #Install Crontab
