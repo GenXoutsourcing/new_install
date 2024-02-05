@@ -96,7 +96,8 @@ tar -xvf asterisk-16.17.0-vici.tar.gz
 cd asterisk-16.17.0-vici/
 ./contrib/scripts/install_prereq install 
 ./bootstrap.sh
-This could take time..
+
+: ${JOBS:=$(( $(nproc) + $(nproc) / 2 ))}
 ./configure --libdir=/usr/lib --with-gsm=internal --enable-opus --enable-srtp --with-ogg=/usr/lib64/ --with-ssl --enable-asteriskssl --with-pjproject-bundled --with-jansson-bundled
 
 make && make menuconfig
