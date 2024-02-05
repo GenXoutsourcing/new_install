@@ -5,6 +5,358 @@ echo "Vicidial installation Ubuntu with WebPhone(WebRTC/SIP.js)"
 export LC_ALL=C
 
 setenforce 0
+apt-get update
+apt-get upgrade
+apt-get install apache2 -y
+apt-get install build-essential -y
+apt-get install mariadb-client-10.3 -y
+apt-get install mariadb-server -y
+
+apt-get install subversion libjansson-dev sqlite autoconf automake libxml2-dev libncurses5-dev -y
+
+add-apt-repository ppa:ondrej/php
+
+apt-get install iftop lame libmysqlclient* -y
+
+apt update
+apt upgrade
+
+sudo apt-get install apache2 apache2-bin apache2-data libapache2-mod-php7.4 php7.4 php7.4-cli php7.4-common php7.4-json php7.4-mysql php7.4-readline sox lame screen libnet-telnet-perl php7.4-mysqli -y
+
+apt-get install libasterisk-agi-perl -y
+
+apt-get install libelf-dev -y
+
+apt-get install autogen libtool shtool -y
+
+apt-get install libc6-i386 -y
+
+
+cpan
+install CPAN::Meta::Requirements
+install CPAN
+reload cpan
+install YAML
+install MD5
+install Digest::MD5
+install Digest::SHA1
+install Bundle::CPAN
+reload cpan
+install DBI
+force install DBD::mysql
+install Net::Telnet
+install Time::HiRes
+install Net::Server
+install Switch
+install Mail::Sendmail
+install Unicode::Map
+install Jcode
+install Spreadsheet::WriteExcel
+install OLE::Storage_Lite
+install Proc::ProcessTable
+install IO::Scalar
+install Spreadsheet::ParseExcel
+install Curses
+install Getopt::Long
+install Net::Domain
+install Term::ReadKey
+install Term::ANSIColor
+install Spreadsheet::XLSX
+install Spreadsheet::Read
+install LWP::UserAgent
+install HTML::Entities
+install HTML::Strip
+install HTML::FormatText
+install HTML::TreeBuilder
+install Time::Local
+install MIME::Decoder
+install Mail::POP3Client
+install Mail::IMAPClient
+install Mail::Message
+install IO::Socket::SSL
+install MIME::Base64
+install MIME::QuotedPrint
+install Crypt::Eksblowfish::Bcrypt
+install readline
+
+apt install dahdi*
+
+modprobe dahdi
+
+/usr/sbin/dahdi_cfg -v
+
+read -p 'Press Enter to continue: '
+
+echo 'Continuing...'
+
+Install Asterisk
+cd /usr/src
+wget http://download.vicidial.com/beta-apps/asterisk-16.17.0-vici.tar.gz
+tar -xvf asterisk-16.17.0-vici.tar.gz
+cd asterisk-16.17.0-vici/
+./contrib/scripts/install_prereq install 
+./bootstrap.sh
+This could take time..
+./configure --libdir=/usr/lib --with-gsm=internal --enable-opus --enable-srtp --with-ogg=/usr/lib64/ --with-ssl --enable-asteriskssl --with-pjproject-bundled --with-jansson-bundled
+
+make && make menuconfig
+
+select app_meetme in Applications(Vicidial Need this for conference)
+make install && make samples && make basic-pbx
+
+Step 4 – WebRTC Extra steps(IF YOU DONT NEED WEBRTC SKIP BELOW STEPS)
+Note: Since WebRTC need SSL i am using my Public Domain to Generate SSL from Let’s Encrypt.
+How to Generate SSL: Link here
+
+sample http.conf
+
+cat /etc/asterisk/http.conf
+[general]
+enabled=yes
+bindaddr=0.0.0.0
+bindport=8088
+enablestatic=yes
+tlsenable=yes
+tlsbindaddr=YOURPUBLICIP:8089
+
+(replace cyburdial.com with your domain)
+tlscertfile=/etc/letsencrypt/live/cyburdial/fullchain.pem
+tlsprivatekey=/etc/letsencrypt/live/cyburdial/privkey.pem
+
+Install VICIDIAL from Source:
+cd /usr/src
+mkdir astguiclient/
+cd astguiclient/
+svn checkout svn://svn.eflo.net/agc_2-X/trunk
+cd trunk/
+MySQL setup for VICIDIAL:
+
+Step 5 – Create Database
+mysql
+SET GLOBAL connect_timeout=60;
+CREATE DATABASE `asterisk` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+CREATE USER 'cron'@'localhost' IDENTIFIED BY '1234';
+GRANT SELECT,INSERT,UPDATE,DELETE,LOCK TABLES on asterisk.* TO cron@'%' IDENTIFIED BY '1234';
+CREATE USER 'custom'@'localhost' IDENTIFIED BY 'custom1234';
+GRANT SELECT,INSERT,UPDATE,DELETE,LOCK TABLES on asterisk.* TO custom@'%' IDENTIFIED BY 'custom1234';
+GRANT SELECT,INSERT,UPDATE,DELETE,LOCK TABLES on asterisk.* TO cron@localhost IDENTIFIED BY '1234';
+GRANT SELECT,INSERT,UPDATE,DELETE,LOCK TABLES on asterisk.* TO custom@localhost IDENTIFIED BY 'custom1234';
+GRANT RELOAD ON *.* TO cron@'%';
+GRANT RELOAD ON *.* TO cron@localhost;
+GRANT RELOAD ON *.* TO custom@'%';
+GRANT RELOAD ON *.* TO custom@localhost;
+flush privileges;
+use asterisk;
+\. /usr/src/astguiclient/trunk/extras/MySQL_AST_CREATE_tables.sql
+\. /usr/src/astguiclient/trunk/extras/first_server_install.sql
+ALTER TABLE phones ALTER template_id SET DEFAULT '';
+quit
+Load the initial database
+cd /usr/src/astguiclient/trunk/extras
+mysql -uroot -p asterisk < MySQL_AST_CREATE_tables.sql
+
+Load First instalation setup database
+mysql -uroot -p asterisk < first_server_install.sql
+
+Load sample sip and iax phones(this contain default user pass, carefull when you installing in vpc)
+mysql -uroot -p asterisk < sip-iax_phones.sql
+
+Do back to root Directory of vicidial
+cd ..
+perl install.pl
+
+Follow the setup with appropriate value.
+Configiguration example
+Populate ISO country codes
+cd /usr/src/astguiclient/trunk/bin
+perl ADMIN_area_code_populate.pl
+
+update the Server IP with latest IP address.(VICIDIAL DEFAULT IP IS 10.10.10.15)
+perl /usr/src/astguiclient/trunk/bin/ADMIN_update_server_ip.pl –old-server_ip=10.10.10.15
+
+Say ‘Yes’ to all
+Add crontab entries(Conf generation, Autodialing, Audio mix and other keepalive processes run from here.
+###recording mixing/compressing/ftping scripts
+
+0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57 * * * * /usr/share/astguiclient/AST_CRON_audio_1_move_mix.pl
+
+0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57 * * * * /usr/share/astguiclient/AST_CRON_audio_1_move_mix.pl –MIX
+0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57 * * * * /usr/share/astguiclient/AST_CRON_audio_1_move_VDonly.pl
+1,4,7,10,13,16,19,22,25,28,31,34,37,40,43,46,49,52,55,58 * * * * /usr/share/astguiclient/AST_CRON_audio_2_compress.pl –GSM
+
+2,5,8,11,14,17,20,23,26,29,32,35,38,41,44,47,50,53,56,59 * * * * /usr/share/astguiclient/AST_CRON_audio_3_ftp.pl –GSM
+
+###keepalive script for astguiclient processes
+
+* * * * /usr/share/astguiclient/ADMIN_keepalive_ALL.pl –cu3way
+
+###kill Hangup script for Asterisk updaters
+
+* * * * /usr/share/astguiclient/AST_manager_kill_hung_congested.pl
+
+###updater for voicemail
+
+* * * * /usr/share/astguiclient/AST_vm_update.pl
+
+###updater for conference validator
+
+* * * * /usr/share/astguiclient/AST_conf_update.pl
+
+###flush queue DB table every hour for entries older than 1 hour
+
+11 * * * * /usr/share/astguiclient/AST_flush_DBqueue.pl -q
+
+###fix the vicidial_agent_log once every hour and the full day run at night
+
+33 * * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl
+50 0 * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl –last-24hours
+
+###uncomment below if using QueueMetrics
+
+#*/5 * * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl –only-qm-live-call-check
+
+###uncomment below if using Vtiger
+
+#1 1 * * * /usr/share/astguiclient/Vtiger_optimize_all_tables.pl –quiet
+
+###updater for VICIDIAL hopper
+
+* * * * /usr/share/astguiclient/AST_VDhopper.pl -q
+
+###adjust the GMT offset for the leads in the vicidial_list table
+
+1 1,7 * * * /usr/share/astguiclient/ADMIN_adjust_GMTnow_on_leads.pl –debug
+
+###reset several temporary-info tables in the database
+
+2 1 * * * /usr/share/astguiclient/AST_reset_mysql_vars.pl
+
+###optimize the database tables within the asterisk database
+
+3 1 * * * /usr/share/astguiclient/AST_DB_optimize.pl
+
+###adjust time on the server with ntp
+
+30 * * * * /usr/sbin/ntpdate -u pool.ntp.org 2>/dev/null 1>&2
+
+###VICIDIAL agent time log weekly and daily summary report generation
+
+2 0 * * 0 /usr/share/astguiclient/AST_agent_week.pl
+22 0 * * * /usr/share/astguiclient/AST_agent_day.pl
+
+###VICIDIAL campaign export scripts (OPTIONAL)
+
+32 0 * * * /usr/share/astguiclient/AST_VDsales_export.pl
+
+42 0 * * * /usr/share/astguiclient/AST_sourceID_summary_export.pl
+
+###remove old recordings more than 7 days old
+
+24 0 * * * /usr/bin/find /var/spool/asterisk/monitorDONE -maxdepth 2 -type f -mtime +7 -print | xargs rm -f
+
+###roll logs monthly on high-volume dialing systems
+
+30 1 1 * * /usr/share/astguiclient/ADMIN_archive_log_tables.pl
+
+###remove old vicidial logs and asterisk logs more than 2 days old
+
+28 0 * * * /usr/bin/find /var/log/astguiclient -maxdepth 1 -type f -mtime +2 -print | xargs rm -f
+29 0 * * * /usr/bin/find /var/log/asterisk -maxdepth 3 -type f -mtime +2 -print | xargs rm -f
+30 0 * * * /usr/bin/find / -maxdepth 1 -name “screenlog.0*” -mtime +4 -print | xargs rm -f
+
+###cleanup of the scheduled callback records
+
+25 0 * * * /usr/share/astguiclient/AST_DB_dead_cb_purge.pl –purge-non-cb -q
+
+###GMT adjust script – uncomment to enable
+
+45 0 * * * /usr/share/astguiclient/ADMIN_adjust_GMTnow_on_leads.pl –list-settings
+
+###Dialer Inventory Report
+
+1 7 * * * /usr/share/astguiclient/AST_dialer_inventory_snapshot.pl -q –override-24hours
+
+###inbound email parser
+
+* * * * /usr/share/astguiclient/AST_inbound_email_parser.pl
+Note: Lookout for the recording removal cron. It might fill your server.
+Add entries to rc.local file to start vicidial and related services
+###OPTIONAL enable ip_relay(for same-machine trunking and blind monitoring)
+
+/usr/share/astguiclient/ip_relay/relay_control start 2>/dev/null 1>&2
+
+###roll the Asterisk logs upon reboot
+
+/usr/share/astguiclient/ADMIN_restart_roll_logs.pl
+
+###clear the server-related records from the database
+
+/usr/share/astguiclient/AST_reset_mysql_vars.pl
+
+###load dahdi drivers
+
+modprobe dahdi
+
+/usr/sbin/dahdi_cfg -vvvvvvvvvvvvv
+
+###sleep for 20 seconds before launching Asterisk
+
+sleep 20
+
+###start up asterisk
+
+/usr/share/astguiclient/start_asterisk_boot.pl
+
+Then Reboot the server.
+VICIDIAL processes run on screen. There should be 9 Processes running on the screen.
+root@vici01:~# screen -ls
+
+There are screens on:
+
+2240.ASTVDremote (03/21/2019 02:16:03 AM) (Detached)
+
+2237.ASTVDauto (03/21/2019 02:16:03 AM) (Detached)
+
+2234.ASTlisten (03/21/2019 02:16:02 AM) (Detached)
+
+2231.ASTsend (03/21/2019 02:16:02 AM) (Detached)
+
+2228.ASTupdate (03/21/2019 02:16:02 AM) (Detached)
+
+2025.ASTconf3way (03/21/2019 02:15:02 AM) (Detached)
+
+2019.ASTVDadapt (03/21/2019 02:15:02 AM) (Detached)
+
+1826.asterisk (03/21/2019 02:14:51 AM) (Detached)
+
+1819.astshell20190321021448 (03/21/2019 02:14:49 AM) (Detached)
+
+9 Sockets in /var/run/screen/S-root.
+All Set now. Now, You can configure web interface and logins.
+Vicidial Admin login :
+http://VICIDIAL_SERVER_IP/vicidial/admin.php
+user: 6666
+Pass: 1234
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 yum groupinstall "Development Tools" -y
 
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
