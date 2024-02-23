@@ -513,6 +513,9 @@ cat <<CRONTAB>> /root/crontab-file
 ######TILTIX GARBAGE FILES DELETE
 #00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
 
+### Khomp Updater
+#* * * * * /usr/share/astguiclient/KHOMP_updater.pl
+
 
 CRONTAB
 
@@ -660,6 +663,9 @@ chkconfig asterisk off
 tee -a /etc/systemd/system.conf <<EOF
 DefaultLimitNOFILE=65536
 EOF
+
+cp /usr/src/astguiclient/trunk/extras/KHOMP/KHOMP_updater.pl /usr/share/astguiclient/KHOMP_updater.pl
+chmod 0777 /usr/share/astguiclient/KHOMP_updater.pl
 
 yum-config-manager --enable rhui-REGION-rhel-server-extras rhui-REGION-rhel-server-optional
 yum install -y certbot python2-certbot-apache
