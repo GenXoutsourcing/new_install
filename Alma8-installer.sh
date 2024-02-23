@@ -71,7 +71,7 @@ max_input_time = 3360
 post_max_size = 448M
 upload_max_filesize = 442M
 default_socket_timeout = 3360
-date.timezone = America/New_York
+date.timezone = Europe/London
 max_input_vars = 20000
 EOF
 
