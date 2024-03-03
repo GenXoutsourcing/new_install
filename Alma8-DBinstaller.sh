@@ -71,7 +71,7 @@ max_input_time = 3360
 post_max_size = 448M
 upload_max_filesize = 442M
 default_socket_timeout = 3360
-date.timezone = Europe/London
+date.timezone = America/New_York
 max_input_vars = 20000
 EOF
 
@@ -287,7 +287,7 @@ echo 'Continuing...'
 echo "Installing astguiclient"
 mkdir /usr/src/astguiclient
 cd /usr/src/astguiclient
-svn checkout -r 3806 svn://svn.eflo.net/agc_2-X/trunk
+svn checkout svn://svn.eflo.net/agc_2-X/trunk
 cd /usr/src/astguiclient/trunk
 
 #Add mysql users and Databases
@@ -508,13 +508,13 @@ cat <<CRONTAB>> /root/crontab-file
 * * * * * /usr/share/astguiclient/AST_inbound_email_parser.pl
 
 ### Daily Reboot
-#30 6 * * * /sbin/reboot
+30 6 * * * /sbin/reboot
 
 ######TILTIX GARBAGE FILES DELETE
-#00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
+00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
 
 ### Khomp Updater
-#* * * * * /usr/share/astguiclient/KHOMP_updater.pl
+* * * * * /usr/share/astguiclient/KHOMP_updater.pl
 
 
 CRONTAB
