@@ -33,10 +33,10 @@ git clone https://github.com/GenXoutsourcing/new_install
 cd new_install
 ```
 
-# Execute Alma8 Linux Vicidial Install
+# Execute Alma8DB Linux Vicidial Install
 ```
-chmod +x Alma8-installer.sh
-./Alma8-installer.sh
+chmod +x Alma8-DBinstaller.sh
+./Alma8-DBinstaller.sh
 ```
 
 
