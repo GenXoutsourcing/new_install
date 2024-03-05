@@ -72,7 +72,7 @@ post_max_size = 448M
 upload_max_filesize = 442M
 default_socket_timeout = 3360
 date.timezone = America/New_York
-max_input_vars = 20000
+max_input_vars = 30000
 EOF
 
 
@@ -101,43 +101,98 @@ port = 3306
 socket = /var/lib/mysql/mysql.sock
 
 [mysqld]
-datadir = /var/lib/mysql
-#tmpdir = /home/mysql_tmp
-socket = /var/lib/mysql/mysql.sock
-user = mysql
-old_passwords = 0
-ft_min_word_len = 3
-max_connections = 800
-max_allowed_packet = 32M
-skip-external-locking
-sql_mode="NO_ENGINE_SUBSTITUTION"
+#bind-address = 127.0.0.1 # Uncomment for local/socket access only, will brick network access
+#port = 3306 # Do not uncomment unless you know what you are doing, can brick your database connectivity
+socket = /var/lib/mysql/mysql.sock # Same note as above
 
+# Stuff to tune for your hardware
+max_connections=2000 # If you have a dedicated database, change this to 2000
+key_buffer_size = 12G # Increase to be approximately 60% of system RAM when you have more then 8GB in the system
+
+# In general most of the below settings don't need tuning
 log-error = /var/log/mysqld/mysqld.log
-
-query-cache-type = 1
-query-cache-size = 32M
-
-long_query_time = 1
-#slow_query_log = 1
-#slow_query_log_file = /var/log/mysqld/slow-queries.log
-
-tmp_table_size = 128M
-table_cache = 1024
-
-join_buffer_size = 1M
-key_buffer = 512M
-sort_buffer_size = 6M
+long_query_time = 3
+slow_query_log = 1
+slow_query_log_file = /var/log/mysqld/slow-queries.log
+log-slow-verbosity=query_plan,explain
+secure_file_priv = /var/lib/mysql-files # Only allow LOAD DATA INFILE from this directory as a security feature
+log_bin = /var/lib/mysql/mysql-bin
+binlog_format=mixed
+binlog_direct_non_transactional_updates=1
+relay_log=/var/lib/mysql/mysql-relay-bin
+datadir = /var/lib/mysql
+server-id = 1 # Master should be 1, and all slaves should have a unique ID number
+slave-skip-errors = 1032,1690,1062
+slave_parallel_threads=20
+slave-parallel-mode=optimistic
+slave_parallel_max_queued=2M
+skip-external-locking
+skip-name-resolve
+connect_timeout=60
+max_allowed_packet = 16M
+table_open_cache = 4096
+table_definition_cache=16384
+sort_buffer_size = 4M
+net_buffer_length = 8K
 read_buffer_size = 4M
 read_rnd_buffer_size = 16M
-myisam_sort_buffer_size = 64M
+myisam_sort_buffer_size = 128M
+query-cache-size = 0
+expire_logs_days = 3
+concurrent_insert = 2
+myisam_repair_threads = 4
+myisam_recover_option=DEFAULT
+tmpdir = /tmp/
+thread_cache_size = 100
+join_buffer_size = 1M
+myisam_use_mmap=1
+open_files_limit=24576
+max_heap_table_size=512M
+tmp_table_size = 32M
+key_cache_segments=64
+sql_mode=NO_ENGINE_SUBSTITUTION
+log_warnings=1 # Silence the noise!!!
 
-max_tmp_tables = 64
-
-thread_cache_size = 8
-thread_concurrency = 8
+#old_passwords = 0
+#ft_min_word_len = 3
+#query-cache-type = 1
+#table_cache = 1024
+#max_tmp_tables = 64
+#thread_concurrency = 8
+#no-auto-rehash
+default-storage-engine=MyISAM
 
 # If using replication, uncomment log-bin below
 #log-bin = mysql-bin
+
+### By default only replicate the 'asterisk' database for ViciDial, comment out to replicate everything
+### Make sure you do a full database dump if not just replicating asterisk database
+#replicate_do_db=asterisk
+
+### Comment out the tables below here if you really need them replicated to the slave, these are PERFORMANCE HOGS!
+### Most of these tables are MEMORY tables which aren't persistent or used solely as tables for tracking the progress
+### of things temporarily before doing real things like log inserts or lead updates
+#replicate-ignore-table=asterisk.vicidial_live_agents
+#replicate-ignore-table=asterisk.live_sip_channels
+#replicate-ignore-table=asterisk.live_channels
+#replicate-ignore-table=asterisk.vicidial_auto_calls
+#replicate-ignore-table=asterisk.server_updater
+#replicate-ignore-table=asterisk.web_client_sessions
+#replicate-ignore-table=asterisk.vicidial_hopper
+#replicate-ignore-table=asterisk.vicidial_campaign_server_status
+#replicate-ignore-table=asterisk.parked_channels
+#replicate-ignore-table=asterisk.vicidial_manager
+#replicate-ignore-table=asterisk.cid_channels_recent
+#replicate-wild-ignore-table=asterisk.cid_channels_recent_%
+
+
+### Yes, we need this for system tables, so no need to tune anything here for ViciDial settings, these are just for the mysql tables and internal stuff
+innodb_buffer_pool_size = 128M
+innodb_file_format = Barracuda # Deprecated in future releases as this is the only supported format, eventually
+innodb_file_per_table = ON
+innodb_flush_method=O_DIRECT
+innodb_flush_log_at_trx_commit=2
+innodb_log_buffer_size=8M
 
 [mysqldump]
 quick
@@ -180,12 +235,136 @@ systemctl restart mariadb.service
 
 echo "Install Perl"
 
-yum install -y perl-CPAN perl-YAML perl-CPAN-DistnameInfo perl-libwww-perl perl-DBI perl-DBD-MySQL perl-GD perl-Env perl-Term-ReadLine-Gnu perl-SelfLoader perl-open.noarch perl-JSON-PP
+yum install -y perl-CPAN perl-YAML perl-CPAN-DistnameInfo perl-libwww-perl perl-DBI perl-DBD-MySQL perl-GD perl-Env perl-Term-ReadLine-Gnu perl-SelfLoader perl-open.noarch perl-JSON perl-Mail-Sendmail
 
-#CPM install
-cd /usr/src/new_install
-curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g App::cpm
-/usr/local/bin/cpm install -g
+cpan -i Tk String::CRC Tk::TableMatrix Net::Address::IP::Local Term::ReadLine::Gnu XML::Twig Digest::Perl::MD5 Spreadsheet::Read Net::Address::IPv4::Local RPM::Specfile Spreadsheet::XLSX Spreadsheet::ReadSXC MD5 Digest::MD5 Digest::SHA1 Bundle::CPAN Pod::Usage Getopt::Long DBI DBD::mysql Net::Telnet Time::HiRes Net::Server Mail::Sendmail Unicode::Map Jcode Spreadsheet::WriteExcel OLE::Storage_Lite Proc::ProcessTable IO::Scalar Scalar::Util Spreadsheet::ParseExcel Archive::Zip Compress::Raw::Zlib Spreadsheet::XLSX Test::Tester Spreadsheet::ReadSXC Text::CSV Test::NoWarnings Text::CSV_PP File::Temp Text::CSV_XS Spreadsheet::Read LWP::UserAgent HTML::Entities HTML::Strip HTML::FormatText HTML::TreeBuilder Switch Time::Local Mail::POP3Client Mail::IMAPClient Mail::Message IO::Socket::SSL readline
+
+echo "Please Press ENTER for CPAN Install"
+
+yum install perl-CPAN -y
+yum install perl-YAML -y
+yum install perl-libwww-perl -y
+yum install perl-DBI -y
+yum install perl-DBD-MySQL -y
+yum install perl-GD -y
+cd /usr/bin/
+curl -LOk http://xrl.us/cpanm
+chmod +x cpanm
+cpanm -f File::HomeDir
+cpanm -f File::Which
+cpanm CPAN::Meta::Requirements
+cpanm -f CPAN
+cpanm YAML
+cpanm MD5
+cpanm Digest::MD5
+cpanm Digest::SHA1
+cpanm readline --force
+
+
+cpanm Bundle::CPAN
+cpanm DBI
+cpanm -f DBD::mysql
+cpanm XML::Twig
+cpanm Net::Telnet
+cpanm Time::HiRes
+cpanm Net::Server
+cpanm Switch
+cpanm Mail::Sendmail
+cpanm Unicode::Map
+cpanm Jcode
+cpanm Spreadsheet::WriteExcel
+cpanm OLE::Storage_Lite
+cpanm Proc::ProcessTable
+cpanm IO::Scalar
+cpanm Spreadsheet::ParseExcel
+cpanm Curses
+cpanm Getopt::Long
+cpanm Net::Domain
+cpanm Term::ReadKey
+cpanm Term::ANSIColor
+cpanm Spreadsheet::XLSX
+cpanm Spreadsheet::Read
+cpanm LWP::UserAgent
+cpanm HTML::Entities
+cpanm HTML::Strip
+cpanm HTML::FormatText
+cpanm HTML::TreeBuilder
+cpanm Time::Local
+cpanm MIME::Decoder
+cpanm Mail::POP3Client
+cpanm Mail::IMAPClient
+cpanm Mail::Message
+cpanm IO::Socket::SSL
+cpanm MIME::Base64
+cpanm MIME::QuotedPrint
+cpanm Crypt::Eksblowfish::Bcrypt
+cpanm Crypt::RC4
+cpanm Text::CSV
+cpanm Text::CSV_XS
+
+#Run CPAN again to be sure all installed
+cpan -i Tk String::CRC Tk::TableMatrix Net::Address::IP::Local Term::ReadLine::Gnu XML::Twig Digest::Perl::MD5 Spreadsheet::Read Net::Address::IPv4::Local RPM::Specfile Spreadsheet::XLSX Spreadsheet::ReadSXC MD5 Digest::MD5 Digest::SHA1 Bundle::CPAN Pod::Usage Getopt::Long DBI DBD::mysql Net::Telnet Time::HiRes Net::Server Mail::Sendmail Unicode::Map Jcode Spreadsheet::WriteExcel OLE::Storage_Lite Proc::ProcessTable IO::Scalar Scalar::Util Spreadsheet::ParseExcel Archive::Zip Compress::Raw::Zlib Spreadsheet::XLSX Test::Tester Spreadsheet::ReadSXC Text::CSV Test::NoWarnings Text::CSV_PP File::Temp Text::CSV_XS Spreadsheet::Read LWP::UserAgent HTML::Entities HTML::Strip HTML::FormatText HTML::TreeBuilder Switch Time::Local Mail::POP3Client Mail::IMAPClient Mail::Message IO::Socket::SSL readline
+
+yum install perl-CPAN -y
+yum install perl-YAML -y
+yum install perl-libwww-perl -y
+yum install perl-DBI -y
+yum install perl-DBD-MySQL -y
+yum install perl-GD -y
+cd /usr/bin/
+curl -LOk http://xrl.us/cpanm
+chmod +x cpanm
+cpanm -f File::HomeDir
+cpanm -f File::Which
+cpanm CPAN::Meta::Requirements
+cpanm -f CPAN
+cpanm YAML
+cpanm MD5
+cpanm Digest::MD5
+cpanm Digest::SHA1
+cpanm readline --force
+
+
+cpanm Bundle::CPAN
+cpanm DBI
+cpanm -f DBD::mysql
+cpanm XML::Twig
+cpanm Net::Telnet
+cpanm Time::HiRes
+cpanm Net::Server
+cpanm Switch
+cpanm Mail::Sendmail
+cpanm Unicode::Map
+cpanm Jcode
+cpanm Spreadsheet::WriteExcel
+cpanm OLE::Storage_Lite
+cpanm Proc::ProcessTable
+cpanm IO::Scalar
+cpanm Spreadsheet::ParseExcel
+cpanm Curses
+cpanm Getopt::Long
+cpanm Net::Domain
+cpanm Term::ReadKey
+cpanm Term::ANSIColor
+cpanm Spreadsheet::XLSX
+cpanm Spreadsheet::Read
+cpanm LWP::UserAgent
+cpanm HTML::Entities
+cpanm HTML::Strip
+cpanm HTML::FormatText
+cpanm HTML::TreeBuilder
+cpanm Time::Local
+cpanm MIME::Decoder
+cpanm Mail::POP3Client
+cpanm Mail::IMAPClient
+cpanm Mail::Message
+cpanm IO::Socket::SSL
+cpanm MIME::Base64
+cpanm MIME::QuotedPrint
+cpanm Crypt::Eksblowfish::Bcrypt
+cpanm Crypt::RC4
+cpanm Text::CSV
+cpanm Text::CSV_XS
 
 
 #Install Asterisk Perl
@@ -513,8 +692,15 @@ cat <<CRONTAB>> /root/crontab-file
 ######TILTIX GARBAGE FILES DELETE
 00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
 
+### Backup
+45 23 * * * /usr/share/astguiclient/ADMIN_backup.pl
+
+### url log delete
+30 23 * * * /usr/share/astguiclient/ADMIN_archive_log_tables.pl --url-log-only --url-log-days=30
+
 ### Khomp Updater
 * * * * * /usr/share/astguiclient/KHOMP_updater.pl
+
 
 
 CRONTAB
