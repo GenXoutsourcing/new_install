@@ -121,7 +121,7 @@ binlog_format=mixed
 binlog_direct_non_transactional_updates=1
 relay_log=/var/lib/mysql/mysql-relay-bin
 datadir = /var/lib/mysql
-server-id = 1 # Master should be 1, and all slaves should have a unique ID number
+#server-id = 1 # Master should be 1, and all slaves should have a unique ID number
 slave-skip-errors = 1032,1690,1062
 slave_parallel_threads=20
 slave-parallel-mode=optimistic
@@ -414,7 +414,7 @@ VARDB_port => 3306
 #  9 - Timeclock auto logout
 #  E - Email processor, (If multi-server system, this must only be on one server)
 #  S - SIP Logger (Patched Asterisk 13 required)
-VARactive_keepalives => 123456789ES
+VARactive_keepalives => 12368S
 
 # Asterisk version VICIDIAL is installed for
 VARasterisk_version => 16.X
@@ -562,19 +562,19 @@ cat <<CRONTAB>> /root/crontab-file
 * * * * * /usr/share/astguiclient/AST_inbound_email_parser.pl
 
 ### Daily Reboot
-30 6 * * * /sbin/reboot
+45 6 * * * /sbin/reboot
 
 ######TILTIX GARBAGE FILES DELETE
 00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
 
 ### Backup
-45 23 * * * /usr/share/astguiclient/ADMIN_backup.pl
+#45 23 * * * /usr/share/astguiclient/ADMIN_backup.pl
 
 ### url log delete
-30 23 * * * /usr/share/astguiclient/ADMIN_archive_log_tables.pl --url-log-only --url-log-days=30
+#30 23 * * * /usr/share/astguiclient/ADMIN_archive_log_tables.pl --url-log-only --url-log-days=30
 
 ### Khomp Updater
-* * * * * /usr/share/astguiclient/KHOMP_updater.pl
+#* * * * * /usr/share/astguiclient/KHOMP_updater.pl
 
 
 
