@@ -39,6 +39,11 @@ chmod +x Alma8-DBinstaller.sh
 ./Alma8-DBinstaller.sh
 ```
 
+# Execute Alma8AST Linux Vicidial Install
+```
+chmod +x Alma8-ASTinstaller.sh
+./Alma8-ASTinstaller.sh
+```
 
 # Install Webphone and SSL cert for VICIDIAL
 # DO THIS IF YOU HAVE PUBLIC DOMAIN WITH PUBLIC IP ONLY
