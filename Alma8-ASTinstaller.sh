@@ -499,11 +499,11 @@ cat <<CRONTAB>> /root/crontab-file
 * * * * * /usr/share/astguiclient/AST_conf_update.pl
 
 ### flush queue DB table every hour for entries older than 1 hour
-11 * * * * /usr/share/astguiclient/AST_flush_DBqueue.pl -q
+#11 * * * * /usr/share/astguiclient/AST_flush_DBqueue.pl -q
 
 ### fix the vicidial_agent_log once every hour and the full day run at night
-33 * * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl
-50 0 * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl --last-24hours
+#33 * * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl
+#50 0 * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl --last-24hours
 
 ## uncomment below if using QueueMetrics
 #*/5 * * * * /usr/share/astguiclient/AST_cleanup_agent_log.pl --only-qm-live-call-check
@@ -512,16 +512,16 @@ cat <<CRONTAB>> /root/crontab-file
 #1 1 * * * /usr/share/astguiclient/Vtiger_optimize_all_tables.pl --quiet
 
 ### updater for VICIDIAL hopper
-* * * * * /usr/share/astguiclient/AST_VDhopper.pl -q
+#* * * * * /usr/share/astguiclient/AST_VDhopper.pl -q
 
 ### adjust the GMT offset for the leads in the vicidial_list table
-1 1,7 * * * /usr/share/astguiclient/ADMIN_adjust_GMTnow_on_leads.pl --debug
+#1 1,7 * * * /usr/share/astguiclient/ADMIN_adjust_GMTnow_on_leads.pl --debug
 
 ### reset several temporary-info tables in the database
 2 1 * * * /usr/share/astguiclient/AST_reset_mysql_vars.pl
 
 ### optimize the database tables within the asterisk database
-3 1 * * * /usr/share/astguiclient/AST_DB_optimize.pl
+#3 1 * * * /usr/share/astguiclient/AST_DB_optimize.pl
 
 ## adjust time on the server with ntp
 #30 * * * * /usr/sbin/ntpdate -u pool.ntp.org 2>/dev/null 1>&amp;2
@@ -550,7 +550,7 @@ cat <<CRONTAB>> /root/crontab-file
 30 0 * * * /usr/bin/find / -maxdepth 1 -name "screenlog.0*" -mtime +4 -print | xargs rm -f
 
 ### cleanup of the scheduled callback records
-25 0 * * * /usr/share/astguiclient/AST_DB_dead_cb_purge.pl --purge-non-cb -q
+#25 0 * * * /usr/share/astguiclient/AST_DB_dead_cb_purge.pl --purge-non-cb -q
 
 ### GMT adjust script - uncomment to enable
 #45 0 * * * /usr/share/astguiclient/ADMIN_adjust_GMTnow_on_leads.pl --list-settings
