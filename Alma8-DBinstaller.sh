@@ -115,7 +115,7 @@ long_query_time = 3
 slow_query_log = 1
 slow_query_log_file = /var/log/mysqld/slow-queries.log
 log-slow-verbosity=query_plan,explain
-secure_file_priv = /var/lib/mysql-files # Only allow LOAD DATA INFILE from this directory as a security feature
+#secure_file_priv = /var/lib/mysql-files # Only allow LOAD DATA INFILE from this directory as a security feature
 log_bin = /var/lib/mysql/mysql-bin
 binlog_format=mixed
 binlog_direct_non_transactional_updates=1
@@ -235,137 +235,12 @@ systemctl restart mariadb.service
 
 echo "Install Perl"
 
-yum install -y perl-CPAN perl-YAML perl-CPAN-DistnameInfo perl-libwww-perl perl-DBI perl-DBD-MySQL perl-GD perl-Env perl-Term-ReadLine-Gnu perl-SelfLoader perl-open.noarch perl-JSON perl-Mail-Sendmail
+yum install -y perl-CPAN perl-YAML perl-CPAN-DistnameInfo perl-libwww-perl perl-DBI perl-DBD-MySQL perl-GD perl-Env perl-Term-ReadLine-Gnu perl-SelfLoader perl-open.noarch 
 
-cpan -i Tk String::CRC Tk::TableMatrix Net::Address::IP::Local Term::ReadLine::Gnu XML::Twig Digest::Perl::MD5 Spreadsheet::Read Net::Address::IPv4::Local RPM::Specfile Spreadsheet::XLSX Spreadsheet::ReadSXC MD5 Digest::MD5 Digest::SHA1 Bundle::CPAN Pod::Usage Getopt::Long DBI DBD::mysql Net::Telnet Time::HiRes Net::Server Mail::Sendmail Unicode::Map Jcode Spreadsheet::WriteExcel OLE::Storage_Lite Proc::ProcessTable IO::Scalar Scalar::Util Spreadsheet::ParseExcel Archive::Zip Compress::Raw::Zlib Spreadsheet::XLSX Test::Tester Spreadsheet::ReadSXC Text::CSV Test::NoWarnings Text::CSV_PP File::Temp Text::CSV_XS Spreadsheet::Read LWP::UserAgent HTML::Entities HTML::Strip HTML::FormatText HTML::TreeBuilder Switch Time::Local Mail::POP3Client Mail::IMAPClient Mail::Message IO::Socket::SSL readline
-
-echo "Please Press ENTER for CPAN Install"
-
-yum install perl-CPAN -y
-yum install perl-YAML -y
-yum install perl-libwww-perl -y
-yum install perl-DBI -y
-yum install perl-DBD-MySQL -y
-yum install perl-GD -y
-cd /usr/bin/
-curl -LOk http://xrl.us/cpanm
-chmod +x cpanm
-cpanm -f File::HomeDir
-cpanm -f File::Which
-cpanm CPAN::Meta::Requirements
-cpanm -f CPAN
-cpanm YAML
-cpanm MD5
-cpanm Digest::MD5
-cpanm Digest::SHA1
-cpanm readline --force
-
-
-cpanm Bundle::CPAN
-cpanm DBI
-cpanm -f DBD::mysql
-cpanm XML::Twig
-cpanm Net::Telnet
-cpanm Time::HiRes
-cpanm Net::Server
-cpanm Switch
-cpanm Mail::Sendmail
-cpanm Unicode::Map
-cpanm Jcode
-cpanm Spreadsheet::WriteExcel
-cpanm OLE::Storage_Lite
-cpanm Proc::ProcessTable
-cpanm IO::Scalar
-cpanm Spreadsheet::ParseExcel
-cpanm Curses
-cpanm Getopt::Long
-cpanm Net::Domain
-cpanm Term::ReadKey
-cpanm Term::ANSIColor
-cpanm Spreadsheet::XLSX
-cpanm Spreadsheet::Read
-cpanm LWP::UserAgent
-cpanm HTML::Entities
-cpanm HTML::Strip
-cpanm HTML::FormatText
-cpanm HTML::TreeBuilder
-cpanm Time::Local
-cpanm MIME::Decoder
-cpanm Mail::POP3Client
-cpanm Mail::IMAPClient
-cpanm Mail::Message
-cpanm IO::Socket::SSL
-cpanm MIME::Base64
-cpanm MIME::QuotedPrint
-cpanm Crypt::Eksblowfish::Bcrypt
-cpanm Crypt::RC4
-cpanm Text::CSV
-cpanm Text::CSV_XS
-
-#Run CPAN again to be sure all installed
-cpan -i Tk String::CRC Tk::TableMatrix Net::Address::IP::Local Term::ReadLine::Gnu XML::Twig Digest::Perl::MD5 Spreadsheet::Read Net::Address::IPv4::Local RPM::Specfile Spreadsheet::XLSX Spreadsheet::ReadSXC MD5 Digest::MD5 Digest::SHA1 Bundle::CPAN Pod::Usage Getopt::Long DBI DBD::mysql Net::Telnet Time::HiRes Net::Server Mail::Sendmail Unicode::Map Jcode Spreadsheet::WriteExcel OLE::Storage_Lite Proc::ProcessTable IO::Scalar Scalar::Util Spreadsheet::ParseExcel Archive::Zip Compress::Raw::Zlib Spreadsheet::XLSX Test::Tester Spreadsheet::ReadSXC Text::CSV Test::NoWarnings Text::CSV_PP File::Temp Text::CSV_XS Spreadsheet::Read LWP::UserAgent HTML::Entities HTML::Strip HTML::FormatText HTML::TreeBuilder Switch Time::Local Mail::POP3Client Mail::IMAPClient Mail::Message IO::Socket::SSL readline
-
-yum install perl-CPAN -y
-yum install perl-YAML -y
-yum install perl-libwww-perl -y
-yum install perl-DBI -y
-yum install perl-DBD-MySQL -y
-yum install perl-GD -y
-cd /usr/bin/
-curl -LOk http://xrl.us/cpanm
-chmod +x cpanm
-cpanm -f File::HomeDir
-cpanm -f File::Which
-cpanm CPAN::Meta::Requirements
-cpanm -f CPAN
-cpanm YAML
-cpanm MD5
-cpanm Digest::MD5
-cpanm Digest::SHA1
-cpanm readline --force
-
-
-cpanm Bundle::CPAN
-cpanm DBI
-cpanm -f DBD::mysql
-cpanm XML::Twig
-cpanm Net::Telnet
-cpanm Time::HiRes
-cpanm Net::Server
-cpanm Switch
-cpanm Mail::Sendmail
-cpanm Unicode::Map
-cpanm Jcode
-cpanm Spreadsheet::WriteExcel
-cpanm OLE::Storage_Lite
-cpanm Proc::ProcessTable
-cpanm IO::Scalar
-cpanm Spreadsheet::ParseExcel
-cpanm Curses
-cpanm Getopt::Long
-cpanm Net::Domain
-cpanm Term::ReadKey
-cpanm Term::ANSIColor
-cpanm Spreadsheet::XLSX
-cpanm Spreadsheet::Read
-cpanm LWP::UserAgent
-cpanm HTML::Entities
-cpanm HTML::Strip
-cpanm HTML::FormatText
-cpanm HTML::TreeBuilder
-cpanm Time::Local
-cpanm MIME::Decoder
-cpanm Mail::POP3Client
-cpanm Mail::IMAPClient
-cpanm Mail::Message
-cpanm IO::Socket::SSL
-cpanm MIME::Base64
-cpanm MIME::QuotedPrint
-cpanm Crypt::Eksblowfish::Bcrypt
-cpanm Crypt::RC4
-cpanm Text::CSV
-cpanm Text::CSV_XS
-
+#CPM install
+cd /usr/src/vicidial-install-scripts
+curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g App::cpm
+/usr/local/bin/cpm install -g
 
 #Install Asterisk Perl
 cd /usr/src
