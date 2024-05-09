@@ -58,6 +58,8 @@ Alias /RECORDINGS/MP3 "/var/spool/asterisk/monitorDONE/MP3/"
 #    </VirtualHost>
 #</IfModule>
 
+Timeout 600
+
 EOF
 
 
