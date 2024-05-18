@@ -735,6 +735,7 @@ yum install -y certbot python2-certbot-apache
 systemctl enable certbot-renew.timer
 systemctl start certbot-renew.timer
 
+yum install firewalld -y
 systemctl enable firewalld
 systemctl start firewalld
 
