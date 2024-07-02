@@ -3,7 +3,9 @@
 
 ```
 
-yum install kernel* -y    
+yum install kernel* -y
+
+grub2-mkconfig -o /boot/efi/EFI/almalinux/grub.cfg
 
 reboot
 
