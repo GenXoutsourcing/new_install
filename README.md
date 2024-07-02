@@ -3,6 +3,15 @@
 
 ```
 
+yum update kernel* -y    
+
+reboot
+
+````
+PREREQUISTES
+
+```
+
 hostnamectl set-hostname xxxxxx.xxxxx.xxx
 ### Use YOUR SubDomain
 
