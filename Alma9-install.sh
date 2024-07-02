@@ -1,13 +1,13 @@
 #!/bin/sh
 
-echo "Vicidial installation AlmaLinux/RockyLinux with CyburPhone and Dynamic portal"
+echo "Vicidial installation AlmaLinux9"
 
 export LC_ALL=C
 
 
 yum groupinstall "Development Tools" -y
 
-yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 yum -y install yum-utils
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
 dnf install https://rpms.remirepo.net/enterprise/remi-release-9.rpm -y
@@ -19,10 +19,12 @@ dnf -y install dnf-plugins-core
 yum install -y php screen php-mcrypt subversion php-cli php-gd php-curl php-mysql php-ldap php-zip php-fileinfo php-opcache -y 
 yum in -y wget unzip make patch gcc gcc-c++ subversion php php-devel php-gd gd-devel readline-devel php-mbstring php-mcrypt 
 yum in -y php-imap php-ldap php-mysqli php-odbc php-pear php-xml php-xmlrpc curl curl-devel perl-libwww-perl ImageMagick 
-yum in -y newt-devel libxml2-devel kernel-devel sqlite-devel libuuid-devel sox sendmail lame-devel htop iftop perl-File-Which
-yum in -y php-opcache libss7 mariadb-devel libss7* libopen* 
+yum in -y newt-devel libxml2-devel kernel-devel sqlite-devel libuuid-devel sox sendmail htop iftop perl-File-Which
+dnf --enablerepo=crb install lame-devel -y
+dnf --enablerepo=crb install mariadb-devel -=y
+yum in -y php-opcache libss7 libss7* libopen* 
 yum in -y sqlite-devel httpd mod_ssl nano chkconfig htop atop mytop iftop
-yum in -y libedit-devel uuid* libxml2*
+yum in -y libedit-devel uuid* libxml2* speex*
 
 
 dnf --enablerepo=crb install libsrtp-devel -y
@@ -40,9 +42,34 @@ Alias /RECORDINGS/MP3 "/var/spool/asterisk/monitorDONE/MP3/"
     AllowOverride None
     Require all granted
 </Directory>
+
+###Update IP to your server to block direct IP access
+#<VirtualHost *:80>
+#ServerName xxx.xxx.xxx.xxx
+#Redirect 403 /
+#ErrorDocument 403 "Sorry, Direct IP access not allowed"
+#DocumentRoot /var/www/html
+#UserDir disabled
+#</VirtualHost>
+
+
+#<VirtualHost *:80>
+#    ServerName other.example.com
+#</VirtualHost>
+
+###Copy to ssl.conf and enter server IP
+#<IfModule mod_ssl.c>
+#    <VirtualHost *:443>
+#        ServerName xxx.xxx.xxx.xxx
+#        Redirect 403 /
+#        DocumentRoot /var/www/html
+#    </VirtualHost>
+#</IfModule>
+
+Timeout 600
+
 EOF
 
-sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 tee -a /etc/php.ini <<EOF
 
@@ -55,6 +82,8 @@ post_max_size = 448M
 upload_max_filesize = 442M
 default_socket_timeout = 3360
 date.timezone = America/New_York
+max_input_vars = 40000
+
 EOF
 
 
@@ -83,43 +112,98 @@ port = 3306
 socket = /var/lib/mysql/mysql.sock
 
 [mysqld]
-datadir = /var/lib/mysql
-#tmpdir = /home/mysql_tmp
-socket = /var/lib/mysql/mysql.sock
-user = mysql
-old_passwords = 0
-ft_min_word_len = 3
-max_connections = 800
-max_allowed_packet = 32M
-skip-external-locking
-sql_mode="NO_ENGINE_SUBSTITUTION"
+#bind-address = 127.0.0.1 # Uncomment for local/socket access only, will brick network access
+#port = 3306 # Do not uncomment unless you know what you are doing, can brick your database connectivity
+socket = /var/lib/mysql/mysql.sock # Same note as above
 
+# Stuff to tune for your hardware
+max_connections=2000 # If you have a dedicated database, change this to 2000
+key_buffer_size = 12G # Increase to be approximately 60% of system RAM when you have more then 8GB in the system
+
+# In general most of the below settings don't need tuning
 log-error = /var/log/mysqld/mysqld.log
-
-query-cache-type = 1
-query-cache-size = 32M
-
-long_query_time = 1
-#slow_query_log = 1
-#slow_query_log_file = /var/log/mysqld/slow-queries.log
-
-tmp_table_size = 128M
-table_cache = 1024
-
-join_buffer_size = 1M
-key_buffer = 512M
-sort_buffer_size = 6M
+long_query_time = 3
+slow_query_log = 1
+slow_query_log_file = /var/log/mysqld/slow-queries.log
+log-slow-verbosity=query_plan,explain
+#secure_file_priv = /var/lib/mysql-files # Only allow LOAD DATA INFILE from this directory as a security feature
+log_bin = /var/lib/mysql/mysql-bin
+binlog_format=mixed
+binlog_direct_non_transactional_updates=1
+relay_log=/var/lib/mysql/mysql-relay-bin
+datadir = /var/lib/mysql
+server-id = 1 # Master should be 1, and all slaves should have a unique ID number
+slave-skip-errors = 1032,1690,1062
+slave_parallel_threads=20
+slave-parallel-mode=optimistic
+slave_parallel_max_queued=2M
+skip-external-locking
+skip-name-resolve
+connect_timeout=60
+max_allowed_packet = 16M
+table_open_cache = 4096
+table_definition_cache=16384
+sort_buffer_size = 4M
+net_buffer_length = 8K
 read_buffer_size = 4M
 read_rnd_buffer_size = 16M
-myisam_sort_buffer_size = 64M
+myisam_sort_buffer_size = 128M
+query-cache-size = 0
+expire_logs_days = 3
+concurrent_insert = 2
+myisam_repair_threads = 4
+myisam_recover_option=DEFAULT
+tmpdir = /tmp/
+thread_cache_size = 100
+join_buffer_size = 1M
+myisam_use_mmap=1
+open_files_limit=24576
+max_heap_table_size=512M
+tmp_table_size = 32M
+key_cache_segments=64
+sql_mode=NO_ENGINE_SUBSTITUTION
+log_warnings=1 # Silence the noise!!!
 
-max_tmp_tables = 64
-
-thread_cache_size = 8
-thread_concurrency = 8
+#old_passwords = 0
+#ft_min_word_len = 3
+#query-cache-type = 1
+#table_cache = 1024
+#max_tmp_tables = 64
+#thread_concurrency = 8
+#no-auto-rehash
+default-storage-engine=MyISAM
 
 # If using replication, uncomment log-bin below
 #log-bin = mysql-bin
+
+### By default only replicate the 'asterisk' database for ViciDial, comment out to replicate everything
+### Make sure you do a full database dump if not just replicating asterisk database
+#replicate_do_db=asterisk
+
+### Comment out the tables below here if you really need them replicated to the slave, these are PERFORMANCE HOGS!
+### Most of these tables are MEMORY tables which aren't persistent or used solely as tables for tracking the progress
+### of things temporarily before doing real things like log inserts or lead updates
+#replicate-ignore-table=asterisk.vicidial_live_agents
+#replicate-ignore-table=asterisk.live_sip_channels
+#replicate-ignore-table=asterisk.live_channels
+#replicate-ignore-table=asterisk.vicidial_auto_calls
+#replicate-ignore-table=asterisk.server_updater
+#replicate-ignore-table=asterisk.web_client_sessions
+#replicate-ignore-table=asterisk.vicidial_hopper
+#replicate-ignore-table=asterisk.vicidial_campaign_server_status
+#replicate-ignore-table=asterisk.parked_channels
+#replicate-ignore-table=asterisk.vicidial_manager
+#replicate-ignore-table=asterisk.cid_channels_recent
+#replicate-wild-ignore-table=asterisk.cid_channels_recent_%
+
+
+### Yes, we need this for system tables, so no need to tune anything here for ViciDial settings, these are just for the mysql tables and internal stuff
+innodb_buffer_pool_size = 128M
+innodb_file_format = Barracuda # Deprecated in future releases as this is the only supported format, eventually
+innodb_file_per_table = ON
+innodb_flush_method=O_DIRECT
+innodb_flush_log_at_trx_commit=2
+innodb_log_buffer_size=8M
 
 [mysqldump]
 quick
@@ -147,6 +231,7 @@ interactive-timeout
 #log-error = /var/log/mysqld/mysqld.log
 #pid-file = /var/run/mysqld/mysqld.pid
 MYSQLCONF
+
 
 mkdir /var/log/mysqld
 touch /var/log/mysqld/slow-queries.log
@@ -205,7 +290,7 @@ ldconfig
 
 #Install Dahdi
 echo "Install Dahdi"
-
+ln -sf /usr/lib/modules/$(uname -r)/vmlinux.xz /boot/
 cd /etc/include
 wget https://dialer.one/newt.h
 
@@ -245,7 +330,7 @@ echo 'Continuing...'
 mkdir /usr/src/asterisk
 cd /usr/src/asterisk
 wget https://downloads.asterisk.org/pub/telephony/libpri/libpri-1.6.1.tar.gz
-wget https://downloads.asterisk.org/pub/telephony/asterisk/old-releases/asterisk-18.18.1.tar.gz
+wget https://download.vicidial.com/required-apps/asterisk-16.30.1-vici.tar.gz
 tar -xvzf asterisk-*
 tar -xvzf libpri-*
 
@@ -257,24 +342,7 @@ cd libsrtp-2.1.0
 make shared_library && sudo make install
 ldconfig
 
-cd /usr/src/asterisk/asterisk-18.18.1/
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/amd_stats-18.patch
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/iax_peer_status-18.patch
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/sip_peer_status-18.patch
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/timeout_reset_dial_app-18.patch
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/timeout_reset_dial_core-18.patch
-cd apps/
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/enter.h
-wget http://download.vicidial.com/asterisk-patches/Asterisk-18/leave.h
-yes | cp -rf enter.h.1 enter.h
-yes | cp -rf leave.h.1 leave.h
-
-cd /usr/src/asterisk/asterisk-18.18.1/
-patch < amd_stats-18.patch apps/app_amd.c
-patch < iax_peer_status-18.patch channels/chan_iax2.c
-patch < sip_peer_status-18.patch channels/chan_sip.c
-patch < timeout_reset_dial_app-18.patch apps/app_dial.c
-patch < timeout_reset_dial_core-18.patch main/dial.c
+cd /usr/src/asterisk/asterisk-16.30.1-vici
 
 yum in libuuid-devel libxml2-devel -y
 
@@ -288,10 +356,9 @@ menuselect/menuselect --enable app_meetme menuselect.makeopts
 menuselect/menuselect --enable res_http_websocket menuselect.makeopts
 #enable res_srtp
 menuselect/menuselect --enable res_srtp menuselect.makeopts
-make samples
-sed -i 's|noload = chan_sip.so|;noload = chan_sip.so|g' /etc/asterisk/modules.conf
 make -j ${JOBS} all
 make install
+make samples
 
 
 read -p 'Press Enter to continue: '
@@ -326,7 +393,7 @@ SET GLOBAL connect_timeout=60;
 use asterisk;
 \. /usr/src/astguiclient/trunk/extras/MySQL_AST_CREATE_tables.sql
 \. /usr/src/astguiclient/trunk/extras/first_server_install.sql
-update servers set asterisk_version='16.30.0';
+update servers set asterisk_version='16.30.1';
 quit
 MYSQLCREOF
 
@@ -419,8 +486,6 @@ perl install.pl --no-prompt --copy_sample_conf_files=Y
 #Secure Manager 
 sed -i s/0.0.0.0/127.0.0.1/g /etc/asterisk/manager.conf
 
-#Add chan_sip to Asterisk 18
-
 
 echo "Populate AREA CODES"
 /usr/share/astguiclient/ADMIN_area_code_populate.pl
@@ -428,7 +493,7 @@ echo "Replace OLD IP. You need to Enter your Current IP here"
 /usr/share/astguiclient/ADMIN_update_server_ip.pl --old-server_ip=10.10.10.15
 
 
-perl install.pl --no-prompt
+perl install.pl --no-prompt --copy_sample_conf_files=Y --khomp-enable=1
 
 
 #Install Crontab
@@ -457,7 +522,7 @@ cat <<CRONTAB>> /root/crontab-file
 * * * * * /usr/share/astguiclient/AST_vm_update.pl
 
 ### updater for conference validator
-* * * * * /usr/share/astguiclient/AST_conf_update.pl
+* * * * * /usr/share/astguiclient/AST_conf_update.pl --no-vc-3way-check
 
 ### flush queue DB table every hour for entries older than 1 hour
 11 * * * * /usr/share/astguiclient/AST_flush_DBqueue.pl -q
@@ -523,14 +588,20 @@ cat <<CRONTAB>> /root/crontab-file
 * * * * * /usr/share/astguiclient/AST_inbound_email_parser.pl
 
 ### Daily Reboot
-#30 6 * * * /sbin/reboot
+30 6 * * * /sbin/reboot
 
 ######TILTIX GARBAGE FILES DELETE
-#00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
+00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
 
-### Dynportal
-@reboot /usr/bin/VB-firewall --whitelist=ViciWhite --dynamic --quiet
-* * * * * /usr/bin/VB-firewall --whitelist=ViciWhite --dynamic --quiet
+### Backup
+45 23 * * * /usr/share/astguiclient/ADMIN_backup.pl
+
+### url log delete
+30 23 * * * /usr/share/astguiclient/ADMIN_archive_log_tables.pl --url-log-only --url-log-days=30
+
+### Khomp Updater
+* * * * * /usr/share/astguiclient/KHOMP_updater.pl
+
 
 
 CRONTAB
@@ -623,18 +694,36 @@ mv /home/dynportal.zip /var/www/vhosts/dynportal/
 mv /home/firewall.zip /etc/firewalld/
 cd /var/www/vhosts/dynportal/
 unzip dynportal.zip
+chmod -R 755 *
+chown -R apache:apache *
 cd etc/httpd/conf.d/
 mv viciportal-ssl.conf viciportal.conf /etc/httpd/conf.d/
 cd /etc/firewalld/
 unzip -o firewall.zip
+cd zones/
 rm -rf public.xml trusted.xml
-mv -b public.xml trusted.xml /etc/firewalld/zones/
+cd /etc/firewalld/
+mv -bf public.xml trusted.xml /etc/firewalld/zones/
 mv /home/aggregate /usr/bin/
 chmod +x /usr/bin/aggregate
 mv /home/VB-firewall /usr/bin/
 chmod +x /usr/bin/VB-firewall
 
 firewall-offline-cmd --add-port=446/tcp --zone=public
+
+##Fix ip_relay
+cd /usr/src/astguiclient/trunk/extras/ip_relay/
+unzip ip_relay_1.1.112705.zip
+cd ip_relay_1.1/src/unix/
+make
+cp ip_relay ip_relay2
+mv -f ip_relay /usr/bin/
+mv -f ip_relay2 /usr/local/bin/ip_relay
+
+cd /usr/lib64/asterisk/modules
+wget http://asterisk.hosting.lv/bin/codec_g729-ast160-gcc4-glibc-x86_64-core2-sse4.so
+mv codec_g729-ast160-gcc4-glibc-x86_64-core2-sse4.so codec_g729.so
+chmod 777 codec_g729.so
 
 tee -a /etc/httpd/conf/httpd.conf <<EOF
 
@@ -712,29 +801,6 @@ sox ../mohmp3/manolo_camp-morning_coffee.wav manolo_camp-morning_coffee.wav vol 
 sox ../mohmp3/manolo_camp-morning_coffee.gsm manolo_camp-morning_coffee.gsm vol 0.25
 sox -t ul -r 8000 -c 1 ../mohmp3/manolo_camp-morning_coffee.ulaw -t ul manolo_camp-morning_coffee.ulaw vol 0.25
 
-tee -a ~/.bashrc <<EOF
-
-# Commands
-/usr/share/astguiclient/ADMIN_keepalive_ALL.pl --cu3way
-/usr/bin/systemctl status httpd --no-pager
-/usr/bin/systemctl status firewalld --no-pager
-/usr/bin/screen -ls
-/usr/sbin/dahdi_cfg -v
-/usr/sbin/asterisk -V
-EOF
-
-sed -i s/Banner none/Banner /etc/ssh/sshd_banner/g /etc/ssh/sshd_config
-
-tee -a /etc/ssh/sshd-banner <<EOF
-Thank you for choosing CyburDial and carpenox's auto installer!
-
-Visit our Knowledge Base at https://www.dialer.one
-
-Support: info@dialer.one
-Skype Live Chat Support: https://join.skype.com/ujkQ7i5lV78O
-EOF
-
-
 cat <<WELCOME>> /var/www/html/index.html
 <META HTTP-EQUIV=REFRESH CONTENT="1; URL=/vicidial/welcome.php">
 Please Hold while I redirect you!
@@ -743,15 +809,60 @@ WELCOME
 chmod 777 /var/spool/asterisk/monitorDONE
 chkconfig asterisk off
 
-yum in certbot -y
+tee -a /etc/systemd/system.conf <<EOF
+DefaultLimitNOFILE=65536
+EOF
+
+cp /usr/src/astguiclient/trunk/extras/KHOMP/KHOMP_updater.pl /usr/share/astguiclient/KHOMP_updater.pl
+chmod 0777 /usr/share/astguiclient/KHOMP_updater.pl
+
+yum-config-manager --enable rhui-REGION-rhel-server-extras rhui-REGION-rhel-server-optional
+yum install -y certbot python2-certbot-apache
 systemctl enable certbot-renew.timer
 systemctl start certbot-renew.timer
-cd /usr/src/vicidial-install-scripts
-chmod +x vicidial-enable-webrtc.sh
-service firewalld stop
-./vicidial-enable-webrtc.sh
-service firewalld start
 
+systemctl enable firewalld
+systemctl start firewalld
+
+
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='74.208.129.213' accept"
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='45.3.191.82' accept"
+firewall-cmd --permanent --add-service=http
+firewall-cmd --permanent --add-service=https
+firewall-cmd --permanent --add-port=8089/tcp
+firewall-cmd --permanent --add-port=8089/udp
+firewall-cmd --permanent --remove-service=ssh
+firewall-cmd --permanent --remove-service=cockpit
+firewall-cmd --permanent --remove-service=dhcpv6-client
+firewall-cmd --permanent --add-port=10000-20000/udp
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="3.216.197.4" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="34.196.59.250" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="34.200.206.65" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="13.56.51.225" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="54.151.113.200" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="54.193.203.21" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="3.216.197.4" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="34.196.59.250" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="34.200.206.65" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="13.56.51.225" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="54.151.113.200" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="54.193.203.21" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.231.161" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.231.161" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.241.161" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.241.161" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.231.192/28" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.231.192/28" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.241.192/28" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.241.192/28" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.231.225" port protocol="udp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="209.200.231.225" port protocol="tcp" port="5060" accept'
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='192.168.0.0/24' accept"
+firewall-cmd --reload
+
+cd /usr/src/new_install
+chmod +x vicidial-enable-webrtc.sh
+./vicidial-enable-webrtc.sh
 
 read -p 'Press Enter to Reboot: '
 
