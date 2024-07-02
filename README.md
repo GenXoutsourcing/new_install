@@ -3,7 +3,7 @@
 
 ```
 
-yum update kernel* -y    
+yum install kernel* -y    
 
 reboot
 
