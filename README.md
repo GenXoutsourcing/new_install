@@ -10,7 +10,7 @@ grub2-mkconfig -o /boot/efi/EFI/almalinux/grub.cfg
 reboot
 
 ````
-PREREQUISTES
+# PREREQUISTES
 
 ```
 
@@ -54,6 +54,12 @@ chmod +x Alma8-DBinstaller.sh
 ```
 chmod +x Alma8-ASTinstaller.sh
 ./Alma8-ASTinstaller.sh
+```
+
+# Execute Alma9DB Linux Vicidial Install
+```
+chmod +x Alma9-DB-install.sh
+./Alma9-DB-install.sh
 ```
 
 # Install Webphone and SSL cert for VICIDIAL
