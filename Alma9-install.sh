@@ -19,12 +19,15 @@ dnf -y install dnf-plugins-core
 yum install -y php screen php-mcrypt subversion php-cli php-gd php-curl php-mysql php-ldap php-zip php-fileinfo php-opcache -y 
 yum in -y wget unzip make patch gcc gcc-c++ subversion php php-devel php-gd gd-devel readline-devel php-mbstring php-mcrypt 
 yum in -y php-imap php-ldap php-mysqli php-odbc php-pear php-xml php-xmlrpc curl curl-devel perl-libwww-perl ImageMagick 
-yum in -y newt-devel libxml2-devel kernel-devel sqlite-devel libuuid-devel sox sendmail htop iftop perl-File-Which
-dnf --enablerepo=crb install lame-devel -y
-dnf --enablerepo=crb install mariadb-devel -=y
-yum in -y php-opcache libss7 libss7* libopen* 
+yum in -y newt-devel libxml2-devel kernel-devel sqlite-devel libuuid-devel sox sendmail lame htop iftop perl-File-Which
+dnf --enablerepo=crb install lame-devel
+dnf --enablerepo=crb install mariadb-devel
+yum in -y php-opcache libss7 libss7*
+dnf --enablerepo=crb install opencv-devel -y
 yum in -y sqlite-devel httpd mod_ssl nano chkconfig htop atop mytop iftop
 yum in -y libedit-devel uuid* libxml2* speex*
+
+
 
 
 dnf --enablerepo=crb install libsrtp-devel -y
