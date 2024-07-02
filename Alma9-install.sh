@@ -16,12 +16,12 @@ dnf module enable mariadb:10.5 -y
 
 dnf -y install dnf-plugins-core
 
-yum install -y php screen php-mcrypt subversion php-cli php-gd php-curl php-mysql php-ldap php-zip php-fileinfo php-opcache -y 
+yum install -y php screen php-mcrypt subversion php-cli php-gd php-curl php-mysql php-ldap php-zip php-fileinfo php-opcache
 yum in -y wget unzip make patch gcc gcc-c++ subversion php php-devel php-gd gd-devel readline-devel php-mbstring php-mcrypt 
 yum in -y php-imap php-ldap php-mysqli php-odbc php-pear php-xml php-xmlrpc curl curl-devel perl-libwww-perl ImageMagick 
 yum in -y newt-devel libxml2-devel kernel-devel sqlite-devel libuuid-devel sox sendmail lame htop iftop perl-File-Which
-dnf --enablerepo=crb install lame-devel
-dnf --enablerepo=crb install mariadb-devel
+dnf --enablerepo=crb install lame-devel -y
+dnf --enablerepo=crb install mariadb-devel -y
 yum in -y php-opcache libss7 libss7*
 dnf --enablerepo=crb install opencv-devel -y
 yum in -y sqlite-devel httpd mod_ssl nano chkconfig htop atop mytop iftop
@@ -253,7 +253,7 @@ echo "Install Perl"
 yum install -y perl-CPAN perl-YAML perl-CPAN-DistnameInfo perl-libwww-perl perl-DBI perl-DBD-MySQL perl-GD perl-Env perl-Term-ReadLine-Gnu perl-SelfLoader perl-open.noarch 
 
 #CPM install
-cd /usr/src/vicidial-install-scripts
+cd /usr/src/new_install
 curl -fsSL https://raw.githubusercontent.com/skaji/cpm/main/cpm | perl - install -g App::cpm
 /usr/local/bin/cpm install -g
 
@@ -293,19 +293,20 @@ ldconfig
 
 #Install Dahdi
 echo "Install Dahdi"
-ln -sf /usr/lib/modules/$(uname -r)/vmlinux.xz /boot/
-cd /etc/include
-wget https://dialer.one/newt.h
-
 cd /usr/src/
-mkdir dahdi-linux-complete-3.2.0+3.2.0
-cd dahdi-linux-complete-3.2.0+3.2.0
-wget https://dialer.one/dahdi-alma9.zip
-unzip dahdi-alma9.zip
-yum in newt* -y
+wget https://downloads.asterisk.org/pub/telephony/dahdi-linux-complete/dahdi-linux-complete-3.1.0+3.1.0.tar.gz
+tar xzf dahdi*
+cd /usr/src/dahdi-linux-complete-3.1.0+3.1.0
 
-sudo sed -i 's|(netdev, \&wc->napi, \&wctc4xxp_poll, 64);|(netdev, \&wc->napi, \&wctc4xxp_poll);|g' /usr/src/dahdi-linux-complete-3.2.0+3.2.0/linux/drivers/dahdi/wctc4xxp/base.c
-sudo sed -i 's|<linux/pci-aspm.h>|<linux/pci.h>|g' /usr/src/dahdi-linux-complete-3.2.0+3.2.0/linux/include/dahdi/kernel.h
+#cd /usr/src/
+#mkdir dahdi-linux-complete-3.2.0+3.2.0
+#cd dahdi-linux-complete-3.2.0+3.2.0
+#wget https://dialer.one/dahdi-alma9.zip
+#unzip dahdi-alma9.zip
+#yum in newt* -y
+
+#sudo sed -i 's|(netdev, \&wc->napi, \&wctc4xxp_poll, 64);|(netdev, \&wc->napi, \&wctc4xxp_poll);|g' /usr/src/dahdi-linux-complete-3.2.0+3.2.0/linux/drivers/dahdi/wctc4xxp/base.c
+#sudo sed -i 's|<linux/pci-aspm.h>|<linux/pci.h>|g' /usr/src/dahdi-linux-complete-3.2.0+3.2.0/linux/include/dahdi/kernel.h
 
 make clean
 make
