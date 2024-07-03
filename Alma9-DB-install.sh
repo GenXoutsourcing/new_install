@@ -794,6 +794,7 @@ cp /usr/src/astguiclient/trunk/extras/KHOMP/KHOMP_updater.pl /usr/share/astguicl
 chmod 0777 /usr/share/astguiclient/KHOMP_updater.pl
 
 yum in certbot -y
+yum -y install certbot python3-certbot-apache mod_ssl
 systemctl enable certbot-renew.timer
 systemctl start certbot-renew.timer
 
