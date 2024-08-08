@@ -841,6 +841,8 @@ cd /usr/src/new_install
 chmod +x vicidial-enable-webrtc.sh
 ./vicidial-enable-webrtc.sh
 
+systemctl start certbot-renew.timer
+
 read -p 'Press Enter to Reboot: '
 
 echo "Restarting AlmaLinux"
