@@ -714,6 +714,15 @@ chmod +x /etc/rc.d/rc.local
 systemctl enable rc-local
 systemctl start rc-local
 
+##Fix ip_relay
+cd /usr/src/astguiclient/trunk/extras/ip_relay/
+unzip ip_relay_1.1.112705.zip
+cd ip_relay_1.1/src/unix/
+make
+cp ip_relay ip_relay2
+mv -f ip_relay /usr/bin/
+mv -f ip_relay2 /usr/local/bin/ip_relay
+
 
 ##Install Sounds
 
