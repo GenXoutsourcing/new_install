@@ -13,7 +13,7 @@ dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.r
 dnf install https://rpms.remirepo.net/enterprise/remi-release-9.rpm -y
 dnf module enable php:remi-7.4 -y
 dnf module enable mariadb:10.5 -y
-
+dnf install glibc-langpack-en
 dnf -y install dnf-plugins-core
 
 yum install -y php screen php-mcrypt subversion php-cli php-gd php-curl php-mysql php-ldap php-zip php-fileinfo php-opcache -y 
