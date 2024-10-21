@@ -813,6 +813,7 @@ systemctl start firewalld
 
 firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='74.208.129.213' accept"
 firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='45.3.191.82' accept"
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='167.99.6.117' accept"
 firewall-cmd --permanent --add-service=http
 firewall-cmd --permanent --add-service=https
 firewall-cmd --permanent --add-port=8089/tcp
