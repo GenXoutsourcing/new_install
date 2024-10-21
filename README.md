@@ -62,6 +62,12 @@ chmod +x Alma9-DB-install.sh
 ./Alma9-DB-install.sh
 ```
 
+# Execute Alma9AST Linux Vicidial Install
+```
+chmod +x Alma9-AST-install.sh
+./Alma9-AST-install.sh
+```
+
 # Install Webphone and SSL cert for VICIDIAL
 # DO THIS IF YOU HAVE PUBLIC DOMAIN WITH PUBLIC IP ONLY
 
