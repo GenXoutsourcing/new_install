@@ -404,7 +404,7 @@ echo 'Continuing...'
 echo "Installing astguiclient"
 mkdir /usr/src/astguiclient
 cd /usr/src/astguiclient
-svn checkout -r 3878 svn://svn.eflo.net/agc_2-X/trunk --without-web
+svn checkout -r 3878 svn://svn.eflo.net/agc_2-X/trunk
 cd /usr/src/astguiclient/trunk
 
 #Add mysql users and Databases
@@ -520,7 +520,7 @@ read serveripadd
 sed -i s/SERVERIP/"$serveripadd"/g /etc/astguiclient.conf
 
 echo "Install VICIDIAL"
-perl install.pl --no-prompt --copy_sample_conf_files=Y --khomp-enable=1
+perl install.pl --no-prompt --without-web --copy_sample_conf_files=Y --khomp-enable=1
 
 #Secure Manager 
 sed -i s/0.0.0.0/127.0.0.1/g /etc/asterisk/manager.conf
