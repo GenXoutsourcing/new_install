@@ -10,7 +10,7 @@ yum groupinstall "Development Tools" -y
 yum -y install yum-utils
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
 dnf install https://rpms.remirepo.net/enterprise/remi-release-9.rpm -y
-dnf module install php:remi-8.1
+dnf module install php:remi-8.1 -y
 dnf module enable mariadb:10.5 -y
 dnf install glibc-langpack-en -y
 dnf -y install dnf-plugins-core
