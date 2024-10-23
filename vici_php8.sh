@@ -397,8 +397,6 @@ make samples
 
 read -p 'Press Enter to continue: '
 
-read -p 'Press Enter to continue: '
-
 echo 'Continuing...'
 
 #Install astguiclient
