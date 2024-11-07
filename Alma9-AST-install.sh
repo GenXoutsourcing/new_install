@@ -619,7 +619,7 @@ cat <<CRONTAB>> /root/crontab-file
 * * * * * /usr/share/astguiclient/AST_inbound_email_parser.pl
 
 ### Daily Reboot
-45 6 * * * /sbin/reboot
+45 5 * * * /sbin/reboot
 
 ######TILTIX GARBAGE FILES DELETE
 00 22 * * * root cd /tmp/ && find . -name '*TILTXtmp*' -type f -delete
